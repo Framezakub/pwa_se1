@@ -2,9 +2,7 @@ const CACHE_NAME = "todo-pwa-v1";
 const urlsToCache = [
   "/",
   "/index.html",
-  "/manifest.json",
-  "/icon-192.png",
-  "/icon-512.png"
+  "/manifest.json"
 ];
 
 // ติดตั้ง SW และ cache ไฟล์
