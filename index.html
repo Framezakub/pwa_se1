@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> PWA</title>
+  <title>Todo PWA</title>
 
-  <!-- manifest -->
+  <!-- Manifest -->
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#2196f3" />
 
@@ -23,21 +23,34 @@
       margin: 5px 0;
     }
     ul { list-style: none; padding: 0; }
-    li { padding: 5px; border-bottom: 1px solid #ddd; }
+    li { padding: 5px; border-bottom: 1px solid #ddd; cursor: pointer; }
     #status { margin-top: 10px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1> PWA </h1>
+  <h1>📋 Todo PWA</h1>
   <input type="text" id="todoInput" placeholder="เพิ่มงานใหม่..." />
   <button onclick="addTodo()">เพิ่ม</button>
   <ul id="todoList"></ul>
 
   <p id="status">สถานะ: <span id="connectionStatus">ออนไลน์</span></p>
-  <button id="installBtn" style="display:none;">📲 ติดตั้งแอป</button>
+  <button id="installBtn" style="display:none;">ติดตั้งแอป</button>
 
   <script>
-    // โหลด todos จาก localStorage
+    // ---------- Local Notification ----------
+    function showNotification(title, body) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, { body });
+      }
+    }
+
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().then((perm) => {
+        console.log("Notification permission:", perm);
+      });
+    }
+
+    // ---------- Todo List ----------
     let todos = JSON.parse(localStorage.getItem("todos")) || [];
     const list = document.getElementById("todoList");
 
@@ -56,10 +69,12 @@
 
     function addTodo() {
       const input = document.getElementById("todoInput");
-      if (input.value.trim() !== "") {
-        todos.push(input.value.trim());
+      const value = input.value.trim();
+      if (value !== "") {
+        todos.push(value);
         input.value = "";
         saveTodos();
+        showNotification("📝 เพิ่มงานใหม่แล้ว", value);
       }
     }
 
@@ -70,26 +85,28 @@
 
     renderTodos();
 
-    // จัดการ online/offline
+    // ---------- Online / Offline ----------
     const statusEl = document.getElementById("connectionStatus");
-    window.addEventListener("online", () => {
-      statusEl.textContent = "ออนไลน์";
-      statusEl.style.color = "green";
-    });
-    window.addEventListener("offline", () => {
-      statusEl.textContent = "ออฟไลน์";
-      statusEl.style.color = "red";
-    });
+    function updateOnlineStatus() {
+      const online = navigator.onLine;
+      statusEl.textContent = online ? "ออนไลน์" : "ออฟไลน์";
+      statusEl.style.color = online ? "green" : "red";
+    }
+    updateOnlineStatus();
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
 
-    // Register Service Worker
+    // ---------- Service Worker ----------
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/service-worker.js")
-        .then(() => console.log("Service Worker registered"));
+        .then(() => console.log("✅ Service Worker registered"))
+        .catch((err) => console.error("❌ SW Error:", err));
     }
 
-    // จัดการ install PWA
+    // ---------- PWA Install Prompt ----------
     let deferredPrompt;
     const installBtn = document.getElementById("installBtn");
+
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -101,7 +118,7 @@
         deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
         if (choice.outcome === "accepted") {
-          console.log("App installed");
+          console.log("🎉 App installed");
         }
         deferredPrompt = null;
         installBtn.style.display = "none";
