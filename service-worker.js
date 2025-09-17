@@ -1,37 +1,42 @@
 const CACHE_NAME = 'todo-pwa-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
+  '/',             // root path
+  '/index.html',   // main HTML
   '/style.css',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
 ];
 
-// ติดตั้ง SW + แคชไฟล์
+// ติดตั้งและแคชไฟล์ทั้งหมด
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(urlsToCache);
+    })
   );
   self.skipWaiting();
 });
 
-// ดึงข้อมูลจากแคชก่อน ถ้าไม่มีค่อย fetch
+// ใช้งานไฟล์จาก cache
 self.addEventListener('fetch', event => {
   if (event.request.mode === 'navigate') {
-    // สำหรับหน้า index.html ให้โหลดจาก network ก่อน ถ้าไม่มีค่อยใช้ cache
+    // ถ้าเป็นการโหลดหน้า (index.html) → ใช้ cache ก่อน
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
+      caches.match('/index.html').then(response => {
+        return response || fetch(event.request);
+      })
     );
   } else {
     event.respondWith(
-      caches.match(event.request).then(response => response || fetch(event.request))
+      caches.match(event.request).then(response => {
+        return response || fetch(event.request);
+      })
     );
   }
 });
 
-
-// ลบแคชเก่าเมื่อ activate
+// ลบ cache เก่า
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -39,11 +44,4 @@ self.addEventListener('activate', event => {
     )
   );
   self.clients.claim();
-});
-
-// อัพเดทแคชเมื่อกดปุ่ม
-self.addEventListener('message', event => {
-  if (event.data.action === 'updateCache') {
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache));
-  }
 });
