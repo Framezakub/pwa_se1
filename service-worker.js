@@ -1,42 +1,37 @@
-const CACHE_NAME = 'todo-pwa-cache-v1';
+const CACHE_NAME = 'todo-pwa-cache-v2';
 const urlsToCache = [
-  '/',             // root path
-  '/index.html',   // main HTML
+  '/',
+  '/index.html',
   '/style.css',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
 ];
 
-// ติดตั้งและแคชไฟล์ทั้งหมด
+// ติดตั้งและแคชไฟล์
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
   self.skipWaiting();
 });
 
-// ใช้งานไฟล์จาก cache
+// ดัก fetch
 self.addEventListener('fetch', event => {
   if (event.request.mode === 'navigate') {
-    // ถ้าเป็นการโหลดหน้า (index.html) → ใช้ cache ก่อน
+    // ถ้าเป็นการโหลดหน้าใหม่ → ดึงจาก network ก่อน ถ้าไม่มีให้ใช้ index.html จาก cache
     event.respondWith(
-      caches.match('/index.html').then(response => {
-        return response || fetch(event.request);
-      })
+      fetch(event.request).catch(() => caches.match('/index.html'))
     );
   } else {
+    // ไฟล์อื่น → cache first
     event.respondWith(
-      caches.match(event.request).then(response => {
-        return response || fetch(event.request);
-      })
+      caches.match(event.request).then(response => response || fetch(event.request))
     );
   }
 });
 
-// ลบ cache เก่า
+// ล้าง cache เก่า
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
