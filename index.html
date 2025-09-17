@@ -1,640 +1,108 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Todo PWA</title>
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk15IFRvZG8gUFdBIiwKICAic2hvcnRfbmFtZSI6ICJUb2RvUFdBIiwKICAiZGVzY3JpcHRpb24iOiAi4LmB4Lii4Lib4Lij4Liy4Lii4LiB4Liy4Lij4LiH4Liy4LiZ4LiX4Li14LmI4LmD4LiK4LmJ4LiH4Liy4LiZ4Lit4Lit4Lif4LmE4Lil4LiZ4LmM4LmE4LiU4LmJ", 
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#4f46e5",
-    "orientation": "portrait",
-    "icons": [
-        {
-            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-            "sizes": "512x512", 
-            "type": "image/png"
-        }
-    ]
-}">
-    <meta name="theme-color" content="#4f46e5">
-    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .status {
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 10px 20px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: white;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .status.offline {
-            background: rgba(239, 68, 68, 0.8);
-        }
-
-        .status.online {
-            background: rgba(34, 197, 94, 0.8);
-        }
-
-        .app-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-
-        .todo-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-
-        .todo-input {
-            flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #e5e7eb;
-            border-radius: 15px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .todo-input:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .add-btn {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 120px;
-        }
-
-        .add-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        .add-btn:active {
-            transform: translateY(0);
-        }
-
-        .todo-list {
-            list-style: none;
-        }
-
-        .todo-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s ease;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .todo-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .todo-item.completed {
-            background: #f0fdf4;
-            border-color: #bbf7d0;
-        }
-
-        .todo-item.completed .todo-text {
-            text-decoration: line-through;
-            color: #6b7280;
-        }
-
-        .todo-checkbox {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .todo-text {
-            flex: 1;
-            font-size: 16px;
-            line-height: 1.5;
-        }
-
-        .todo-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .edit-btn, .delete-btn {
-            background: none;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .edit-btn {
-            background: #fef3c7;
-            color: #d97706;
-        }
-
-        .edit-btn:hover {
-            background: #fde68a;
-        }
-
-        .delete-btn {
-            background: #fecaca;
-            color: #dc2626;
-        }
-
-        .delete-btn:hover {
-            background: #fca5a5;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-            padding: 20px;
-            background: #f1f5f9;
-            border-radius: 15px;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #4f46e5;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #64748b;
-            margin-top: 5px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #64748b;
-        }
-
-        .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .app-container {
-                padding: 20px;
-            }
-
-            .todo-form {
-                flex-direction: column;
-            }
-
-            .stats {
-                flex-direction: column;
-                gap: 20px;
-            }
-        }
-
-        .install-prompt {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            animation: slideDown 0.5s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .install-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .install-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA Todo App</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📝 My Todo PWA</h1>
-            <p>แอปจัดการงานที่ใช้งานออฟไลน์ได้</p>
-        </div>
+  <h1>📋 Todo PWA</h1>
+  <input type="text" id="todo-input" placeholder="เพิ่มงานใหม่...">
+  <button onclick="addTodo()">เพิ่ม</button>
+  <ul id="todo-list"></ul>
 
-        <div class="status" id="status">
-            🌐 กำลังตรวจสอบการเชื่อมต่อ...
-        </div>
+  <button id="install-btn" style="display:none">📲 ติดตั้งแอป</button>
+  <button onclick="updateCache()">🔄 อัพเดทแคช</button>
+  <button onclick="testOffline()">📡 ทดสอบโหมดออฟไลน์</button>
 
-        <div class="install-prompt" id="installPrompt" style="display: none;">
-            <div>
-                <strong>📱 ติดตั้งแอป</strong>
-                <p>ติดตั้ง Todo PWA เพื่อใช้งานง่ายขึ้น</p>
-            </div>
-            <button class="install-btn" id="installBtn">ติดตั้ง</button>
-        </div>
+  <script>
+    // LocalStorage สำหรับ Todo
+    const todoInput = document.getElementById('todo-input');
+    const todoList = document.getElementById('todo-list');
 
-        <div class="app-container">
-            <form class="todo-form" id="todoForm">
-                <input 
-                    type="text" 
-                    class="todo-input" 
-                    id="todoInput" 
-                    placeholder="เพิ่มงานใหม่..." 
-                    required
-                >
-                <button type="submit" class="add-btn">
-                    ➕ เพิ่ม
-                </button>
-            </form>
+    function loadTodos() {
+      const todos = JSON.parse(localStorage.getItem('todos')) || [];
+      todoList.innerHTML = '';
+      todos.forEach((todo, index) => {
+        const li = document.createElement('li');
+        li.textContent = todo;
+        li.onclick = () => removeTodo(index);
+        todoList.appendChild(li);
+      });
+    }
 
-            <ul class="todo-list" id="todoList"></ul>
+    function addTodo() {
+      const todos = JSON.parse(localStorage.getItem('todos')) || [];
+      if (todoInput.value.trim()) {
+        todos.push(todoInput.value);
+        localStorage.setItem('todos', JSON.stringify(todos));
+        todoInput.value = '';
+        loadTodos();
+      }
+    }
 
-            <div class="empty-state" id="emptyState">
-                <div class="empty-state-icon">🎉</div>
-                <h3>ยังไม่มีงานในรายการ</h3>
-                <p>เพิ่มงานใหม่เพื่อเริ่มต้นการใช้งาน</p>
-            </div>
+    function removeTodo(index) {
+      const todos = JSON.parse(localStorage.getItem('todos')) || [];
+      todos.splice(index, 1);
+      localStorage.setItem('todos', JSON.stringify(todos));
+      loadTodos();
+    }
 
-            <div class="stats">
-                <div class="stat">
-                    <div class="stat-number" id="totalTodos">0</div>
-                    <div class="stat-label">งานทั้งหมด</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="completedTodos">0</div>
-                    <div class="stat-label">งานที่เสร็จแล้ว</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="pendingTodos">0</div>
-                    <div class="stat-label">งานที่เหลือ</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('Service Worker registered'))
+        .catch(err => console.log('SW registration failed:', err));
+    }
 
-    <script>
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js');
-                    console.log('Service Worker registered successfully:', registration.scope);
-                } catch (error) {
-                    console.log('Service Worker registration failed:', error);
-                    
-                    // Inline Service Worker as fallback
-                    const swCode = `
-                        const CACHE_NAME = 'todo-pwa-v1';
-                        const urlsToCache = [
-                            '/',
-                            '/offline.html'
-                        ];
+    // ติดตั้งแอป
+    let deferredPrompt;
+    const installBtn = document.getElementById('install-btn');
 
-                        self.addEventListener('install', event => {
-                            event.waitUntil(
-                                caches.open(CACHE_NAME)
-                                    .then(cache => cache.addAll(urlsToCache))
-                            );
-                        });
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
 
-                        self.addEventListener('fetch', event => {
-                            event.respondWith(
-                                caches.match(event.request)
-                                    .then(response => {
-                                        if (response) {
-                                            return response;
-                                        }
-                                        return fetch(event.request)
-                                            .catch(() => caches.match('/offline.html'));
-                                    })
-                            );
-                        });
-                    `;
-                    
-                    const blob = new Blob([swCode], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(blob);
-                    await navigator.serviceWorker.register(swUrl);
-                    console.log('Inline Service Worker registered');
-                }
-            });
-        }
+    installBtn.addEventListener('click', async () => {
+      installBtn.style.display = 'none';
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response: ${outcome}`);
+      deferredPrompt = null;
+    });
 
-        // PWA Install Prompt
-        let deferredPrompt;
-        const installPrompt = document.getElementById('installPrompt');
-        const installBtn = document.getElementById('installBtn');
+    // ปุ่มอัพเดทแคช
+    function updateCache() {
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ action: 'updateCache' });
+        alert("Cache updated!");
+      }
+    }
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installPrompt.style.display = 'flex';
-        });
+    // ทดสอบออฟไลน์
+    function testOffline() {
+      alert('ลองปิดเน็ตแล้วรีเฟรชดูว่าแคชทำงานหรือไม่');
+    }
 
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log('User response to the install prompt:', outcome);
-                deferredPrompt = null;
-                installPrompt.style.display = 'none';
-            }
-        });
+    // แจ้งเตือนเมื่อ Offline / Online
+    let wasOffline = false;
+    window.addEventListener('offline', () => {
+      wasOffline = true;
+      alert('❌ ตอนนี้คุณออฟไลน์แล้ว');
+    });
 
-        // Online/Offline Status
-        const statusDiv = document.getElementById('status');
+    window.addEventListener('online', () => {
+      if (wasOffline) {
+        wasOffline = false;
+        alert('✅ กลับมาออนไลน์แล้ว');
+      }
+    });
 
-        function updateOnlineStatus() {
-            if (navigator.onLine) {
-                statusDiv.textContent = '🌐 ออนไลน์ - ข้อมูลจะถูกซิงค์';
-                statusDiv.className = 'status online';
-            } else {
-                statusDiv.textContent = '📱 ออฟไลน์ - ยังใช้งานได้ปกติ';
-                statusDiv.className = 'status offline';
-            }
-        }
-
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus();
-
-        // Todo App Logic
-        class TodoApp {
-            constructor() {
-                this.todos = this.loadTodos();
-                this.init();
-            }
-
-            init() {
-                this.todoForm = document.getElementById('todoForm');
-                this.todoInput = document.getElementById('todoInput');
-                this.todoList = document.getElementById('todoList');
-                this.emptyState = document.getElementById('emptyState');
-                
-                this.todoForm.addEventListener('submit', this.handleSubmit.bind(this));
-                this.render();
-            }
-
-            handleSubmit(e) {
-                e.preventDefault();
-                const text = this.todoInput.value.trim();
-                if (text) {
-                    this.addTodo(text);
-                    this.todoInput.value = '';
-                }
-            }
-
-            addTodo(text) {
-                const todo = {
-                    id: Date.now(),
-                    text: text,
-                    completed: false,
-                    createdAt: new Date().toISOString()
-                };
-                this.todos.unshift(todo);
-                this.saveTodos();
-                this.render();
-            }
-
-            toggleTodo(id) {
-                const todo = this.todos.find(t => t.id === id);
-                if (todo) {
-                    todo.completed = !todo.completed;
-                    todo.completedAt = todo.completed ? new Date().toISOString() : null;
-                    this.saveTodos();
-                    this.render();
-                }
-            }
-
-            editTodo(id) {
-                const todo = this.todos.find(t => t.id === id);
-                if (todo) {
-                    const newText = prompt('แก้ไขงาน:', todo.text);
-                    if (newText && newText.trim()) {
-                        todo.text = newText.trim();
-                        todo.updatedAt = new Date().toISOString();
-                        this.saveTodos();
-                        this.render();
-                    }
-                }
-            }
-
-            deleteTodo(id) {
-                if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบงานนี้?')) {
-                    this.todos = this.todos.filter(t => t.id !== id);
-                    this.saveTodos();
-                    this.render();
-                }
-            }
-
-            render() {
-                this.todoList.innerHTML = '';
-                
-                if (this.todos.length === 0) {
-                    this.emptyState.style.display = 'block';
-                } else {
-                    this.emptyState.style.display = 'none';
-                    
-                    this.todos.forEach(todo => {
-                        const li = document.createElement('li');
-                        li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-                        
-                        li.innerHTML = `
-                            <input 
-                                type="checkbox" 
-                                class="todo-checkbox" 
-                                ${todo.completed ? 'checked' : ''}
-                                onchange="app.toggleTodo(${todo.id})"
-                            >
-                            <span class="todo-text">${this.escapeHtml(todo.text)}</span>
-                            <div class="todo-actions">
-                                <button class="edit-btn" onclick="app.editTodo(${todo.id})">
-                                    ✏️ แก้ไข
-                                </button>
-                                <button class="delete-btn" onclick="app.deleteTodo(${todo.id})">
-                                    🗑️ ลบ
-                                </button>
-                            </div>
-                        `;
-                        
-                        this.todoList.appendChild(li);
-                    });
-                }
-
-                this.updateStats();
-            }
-
-            updateStats() {
-                const total = this.todos.length;
-                const completed = this.todos.filter(t => t.completed).length;
-                const pending = total - completed;
-
-                document.getElementById('totalTodos').textContent = total;
-                document.getElementById('completedTodos').textContent = completed;
-                document.getElementById('pendingTodos').textContent = pending;
-            }
-
-            loadTodos() {
-                try {
-                    const stored = localStorage.getItem('todos');
-                    return stored ? JSON.parse(stored) : [];
-                } catch (error) {
-                    console.error('Error loading todos:', error);
-                    return [];
-                }
-            }
-
-            saveTodos() {
-                try {
-                    localStorage.setItem('todos', JSON.stringify(this.todos));
-                } catch (error) {
-                    console.error('Error saving todos:', error);
-                }
-            }
-
-            escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-        }
-
-        // Initialize App
-        const app = new TodoApp();
-
-        // Notification Permission
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    console.log('Notification permission granted');
-                }
-            });
-        }
-
-        // Show notifications for offline/online status
-        let wasOffline = false;
-
-        window.addEventListener('offline', () => {
-            wasOffline = true;
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('Todo PWA', {
-                    body: 'คุณออฟไลน์แล้ว แต่ยังสามารถใช้งานได้ปกติ',
-                    icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-                });
-            }
-        });
-
-        window.addEventListener('online', () => {
-            if (wasOffline && 'Notification' in window && Notification.permission === 'granted') {
-                new Notification('Todo PWA', {
-                    body: 'กลับมาออนไลน์แล้ว ข้อมูลจะถูกซิงค์',
-                    icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-                });
-            }
-            wasOffline = false;
-        });
-    </script>
+    loadTodos();
+  </script>
 </body>
 </html>
