@@ -18,10 +18,18 @@ self.addEventListener('install', event => {
 
 // ดึงข้อมูลจากแคชก่อน ถ้าไม่มีค่อย fetch
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
-  );
+  if (event.request.mode === 'navigate') {
+    // สำหรับหน้า index.html ให้โหลดจาก network ก่อน ถ้าไม่มีค่อยใช้ cache
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    );
+  } else {
+    event.respondWith(
+      caches.match(event.request).then(response => response || fetch(event.request))
+    );
+  }
 });
+
 
 // ลบแคชเก่าเมื่อ activate
 self.addEventListener('activate', event => {
