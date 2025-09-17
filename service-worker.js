@@ -2,34 +2,44 @@ const CACHE_NAME = "todo-pwa-v1";
 const urlsToCache = [
   "/",
   "/index.html",
-  "/manifest.json"
+  "/manifest.json",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png"
 ];
 
-// ติดตั้ง SW และ cache ไฟล์
+// ติดตั้ง Service Worker และ cache ไฟล์
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(urlsToCache);
     })
   );
+  self.skipWaiting();
 });
 
-// ทำงาน fetch
+// ดึงข้อมูลจาก cache หรือ network
 self.addEventListener("fetch", (event) => {
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      caches.match("/index.html").then((res) => res || fetch(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((res) => {
-      return res || fetch(event.request);
-    })
+    caches.match(event.request).then((res) => res || fetch(event.request))
   );
 });
 
-// อัพเดท cache เก่า
+// ลบ cache เก่า
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.map((k) => {
-          if (k !== CACHE_NAME) return caches.delete(k);
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
         })
       )
     )
