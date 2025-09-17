@@ -1,47 +1,39 @@
-const CACHE_NAME = 'todo-pwa-cache-v3';
+const CACHE_NAME = "todo-pwa-v1";
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  "/",
+  "/index.html",
+  "/manifest.json",
+  "/icon-192.png",
+  "/icon-512.png"
 ];
 
-// ติดตั้งและแคชไฟล์
-self.addEventListener('install', event => {
+// ติดตั้ง SW และ cache ไฟล์
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
+    caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(urlsToCache);
     })
   );
-  self.skipWaiting();
 });
 
-// ใช้ไฟล์จาก cache เมื่อออฟไลน์
-self.addEventListener('fetch', event => {
-  if (event.request.mode === 'navigate') {
-    // โหลดหน้า HTML → ถ้า offline ให้ใช้ index.html จาก cache
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
-    );
-  } else {
-    // ไฟล์อื่นใช้ cache-first
-    event.respondWith(
-      caches.match(event.request).then(response => {
-        return response || fetch(event.request);
-      })
-    );
-  }
+// ทำงาน fetch
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((res) => {
+      return res || fetch(event.request);
+    })
+  );
 });
 
-// ลบ cache เก่าเมื่อ activate
-self.addEventListener('activate', event => {
+// อัพเดท cache เก่า
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((k) => {
+          if (k !== CACHE_NAME) return caches.delete(k);
+        })
+      )
     )
   );
-  self.clients.claim();
 });
-

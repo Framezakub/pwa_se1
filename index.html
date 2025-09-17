@@ -1,111 +1,112 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PWA Todo App</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#2196f3" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo PWA</title>
 
+  <!-- manifest -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#2196f3" />
+
+  <!-- CSS -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 10px;
+    }
+    h1 { color: #2196f3; }
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
+    }
+    ul { list-style: none; padding: 0; }
+    li { padding: 5px; border-bottom: 1px solid #ddd; }
+    #status { margin-top: 10px; font-weight: bold; }
+  </style>
 </head>
 <body>
-  <h1>📋 Todo PWA</h1>
-  <input type="text" id="todo-input" placeholder="เพิ่มงานใหม่...">
+  <h1>Todo PWA ✅</h1>
+  <input type="text" id="todoInput" placeholder="เพิ่มงานใหม่..." />
   <button onclick="addTodo()">เพิ่ม</button>
-  <ul id="todo-list"></ul>
+  <ul id="todoList"></ul>
 
-  <button id="install-btn" style="display:none">📲 ติดตั้งแอป</button>
-  <button onclick="updateCache()">🔄 อัพเดทแคช</button>
-  <button onclick="testOffline()">📡 ทดสอบโหมดออฟไลน์</button>
+  <p id="status">สถานะ: <span id="connectionStatus">ออนไลน์</span></p>
+  <button id="installBtn" style="display:none;">📲 ติดตั้งแอป</button>
 
   <script>
-    // LocalStorage สำหรับ Todo
-    const todoInput = document.getElementById('todo-input');
-    const todoList = document.getElementById('todo-list');
+    // โหลด todos จาก localStorage
+    let todos = JSON.parse(localStorage.getItem("todos")) || [];
+    const list = document.getElementById("todoList");
 
-    function loadTodos() {
-      const todos = JSON.parse(localStorage.getItem('todos')) || [];
-      todoList.innerHTML = '';
-      todos.forEach((todo, index) => {
-        const li = document.createElement('li');
-        li.textContent = todo;
-        li.onclick = () => removeTodo(index);
-        todoList.appendChild(li);
+    function renderTodos() {
+      list.innerHTML = "";
+      todos.forEach((t, i) => {
+        const li = document.createElement("li");
+        li.textContent = t;
+        li.onclick = () => {
+          todos.splice(i, 1);
+          saveTodos();
+        };
+        list.appendChild(li);
       });
     }
 
     function addTodo() {
-      const todos = JSON.parse(localStorage.getItem('todos')) || [];
-      if (todoInput.value.trim()) {
-        todos.push(todoInput.value);
-        localStorage.setItem('todos', JSON.stringify(todos));
-        todoInput.value = '';
-        loadTodos();
+      const input = document.getElementById("todoInput");
+      if (input.value.trim() !== "") {
+        todos.push(input.value.trim());
+        input.value = "";
+        saveTodos();
       }
     }
 
-    function removeTodo(index) {
-      const todos = JSON.parse(localStorage.getItem('todos')) || [];
-      todos.splice(index, 1);
-      localStorage.setItem('todos', JSON.stringify(todos));
-      loadTodos();
+    function saveTodos() {
+      localStorage.setItem("todos", JSON.stringify(todos));
+      renderTodos();
     }
 
-    // Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(() => console.log('Service Worker registered'))
-        .catch(err => console.log('SW registration failed:', err));
+    renderTodos();
+
+    // จัดการ online/offline
+    const statusEl = document.getElementById("connectionStatus");
+    window.addEventListener("online", () => {
+      statusEl.textContent = "ออนไลน์";
+      statusEl.style.color = "green";
+    });
+    window.addEventListener("offline", () => {
+      statusEl.textContent = "ออฟไลน์";
+      statusEl.style.color = "red";
+    });
+
+    // Register Service Worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(() => console.log("Service Worker registered"));
     }
 
-    // ติดตั้งแอป
+    // จัดการ install PWA
     let deferredPrompt;
-    const installBtn = document.getElementById('install-btn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
+    const installBtn = document.getElementById("installBtn");
+    window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      installBtn.style.display = 'block';
+      installBtn.style.display = "block";
     });
 
-    installBtn.addEventListener('click', async () => {
-      installBtn.style.display = 'none';
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response: ${outcome}`);
-      deferredPrompt = null;
-    });
-
-    // ปุ่มอัพเดทแคช
-    function updateCache() {
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ action: 'updateCache' });
-        alert("Cache updated!");
-      }
-    }
-
-    // ทดสอบออฟไลน์
-    function testOffline() {
-      alert('ลองปิดเน็ตแล้วรีเฟรชดูว่าแคชทำงานหรือไม่');
-    }
-
-    // แจ้งเตือนเมื่อ Offline / Online
-    let wasOffline = false;
-    window.addEventListener('offline', () => {
-      wasOffline = true;
-      alert('❌ ตอนนี้คุณออฟไลน์แล้ว');
-    });
-
-    window.addEventListener('online', () => {
-      if (wasOffline) {
-        wasOffline = false;
-        alert('✅ กลับมาออนไลน์แล้ว');
+    installBtn.addEventListener("click", async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if (choice.outcome === "accepted") {
+          console.log("App installed");
+        }
+        deferredPrompt = null;
+        installBtn.style.display = "none";
       }
     });
-
-    loadTodos();
   </script>
 </body>
 </html>
